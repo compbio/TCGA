@@ -1,1 +1,83 @@
-All programs are need for TCGA neo-antigen project
+###########################################################################
+Pan-TCGA analysis of neo-antigen discovery.
+###########################################################################
+
+###########################################################################
+0. Overview of available data from GDC
+###########################################################################
+- get all manifest & metadata.cart.*.json for vcf, cnv, wes bam, rna-seq bam first. (see below for each section)
+- Two directories @ A00_GDCdownload
+  i. CN
+  ii. VCF_mutect
+- Two direcotries @ /mnt/tcga_data
+  i. bam
+  ii. fastq
+- make file_manifest.txt using gdc_parse_json_manifest.py @ each directory
+- Run 1_status_sample_gdc.pl to have the status of available data for each sample and assign batch number
+
+
+
+###########################################################################
+1. Download data from GDC
+###########################################################################
+
+i) Somatic mutation (Mutect2)
+	a. select "Simple Nucleotide Variation" && "Masked Somatic Mutation" && "MuTect2 Variant Aggregation and Masking" after selecting cancer type such as BRCA
+	b. put them into cart and download manifest & metadata.cart.*.json @ /mnt/ix1/Projects/M023_161006_PanTCGA_Neoantigen/cancer/A00_161201_GDCdownload/Simple_Nucleotide_Variants
+	c. Create symlink of (ln -s) /mnt/ix1/Resources/scripts/gdc_parse_json_manifest.py
+	d. run GDC downloader @ Aji
+		: nohup nice /mnt/ix1/Resources/tools/gdc-client_v1.0.1/gdc-client download -m snv_gdc_manifest_20161201_174833.txt -t /mnt/ix1/Projects/M023_161006_PanTCGA_Neoantigen/GDC_download/gdc-user-token.2016-11-16T12_43_52-08_00.txt -d . -n 24 &
+	e. 
+
+	VCF verision
+	a.
+	b.
+	c. run GDC downloader @ A00_GDCdownload (on Aji)
+		: nohup nice /mnt/ix1/Resources/tools/gdc-client_v1.0.1/gdc-client download -m vcf_wes_gdc_manifest_20161206_211516.txt -t /mnt/ix1/Projects/M023_161006_PanTCGA_Neoantigen/GDC_download/gdc-user-token.2016-11-16T12_43_52-08_00.txt -d . -n 24 &
+	d. ./gunzip.sh -> unzip all *.vcf @ A00_GDCdownload
+	e. python vcf_symlink.py @ A01_EXOQ_inputs
+	  : If there are multiple VCFs, chooes the one contains the tumor type. Select the largest one if multipe VCF with matched tumor type.
+	  : Do not check tumor type when only one VCF is available.
+	
+ii) Copy number variation
+	a. select "Copy Number Variation" && "Masked Copy Number Segment" after selecting cancer type such as BRCA
+	b. put them into cart and download manifest & metadata.cart.*.json @ /mnt/ix1/Projects/M023_161006_PanTCGA_Neoantigen/cancer/A00_161201_GDCdownload/CN
+	c. run GDC downloader @ Aji
+		: nohup nice /mnt/ix1/Resources/tools/gdc-client_v1.0.1/gdc-client download -m cnv_gdc_manifest_20161201_180041.txt -t /mnt/ix1/Projects/M023_161006_PanTCGA_Neoantigen/GDC_download/gdc-user-token.2016-11-16T12_43_52-08_00.txt -d . -n 24 &
+
+iii) WES bam files
+
+iv) RAN-seq bam files
+	a. select " Raw Sequencing Data" && "RNA-Seq" after selecting cancer type such as BRCA
+	b. put them into cart and download manifest & metadata.cart.*.json @ /mnt/tcga_data/bam/$CANCER_GDC/RNA_seq
+	c. Create symlink of (ln -s) /mnt/ix1/Resources/scripts/gdc_parse_json_manifest.py @ /mnt/tcga_data/bam/$CANCER_GDC/RNA_seq
+	d.python gdc_parse_json_manifest.py to get file_manifest.txt
+	e. perl 1_check_fastq.pl
+	f. perl 2_
+	g. run GDC download at Aji
+		nohup nice /mnt/ix1/Resources/tools/gdc-client_v1.0.1/gdc-client download -m batch_2.txt -t /mnt/ix1/Projects/M023_161006_PanTCGA_Neoantigen/GDC_download/gdc-user-token.2016-11-16T12_43_52-08_00.txt -d ./batch_02/ -n 24 >batch1_nohup.out 2>&1 &
+	h. python rna_bam_symlink.py @ /mnt/ix1/Projects/M023_161006_PanTCGA_Neoantigen/$CANCER/A01_RNAQ_inputs -> this will generate sylink of bam files with TCGA ID under batch folder
+
+v) RNA-seq fastq files (@/mnt/tcga_data/fastq/$CANCER/RNAseq)
+	a. select all RNA-seq from GDC legacy (https://gdc-portal.nci.nih.gov/legacy-archive/search/f)
+	b. put them into cart and download manifest & metadata.cart.*.json @ /mnt/tcga_data/fastq/cancer/RNAseq
+	c. Create symlink of /mnt/ix1/Resources/scripts/gdc_parse_json_manifest.py @ /mnt/tcga_data/fastq/$CANCER/RNAseq
+	d. Run gdc_parse_json_manifest.py to make file_manifest.txt. -> this file connects analysis_id to TCGA id
+	e. run GDC download @ /mnt/tcga_data/fastq/$CANCER/RNAseq (using Aji)
+		nohup nice /mnt/ix1/Resources/tools/gdc-client_v1.0.1/gdc-client download -m batch_1.txt -t /mnt/ix1/Projects/M023_161006_PanTCGA_Neoantigen/GDC_download/gdc-user-token.2016-11-16T12_43_52-08_00.txt -d ./batch_01/ -n 24 >batch1_nohup.out 2>&1 &
+	h. ./unzip_fq.sh batch_01 & -> unzip fastq files
+
+
+
+###########################################################################
+3. Run HLAminer
+###########################################################################
+i) create symlink of fastq in A00_date_fastq_links
+
+
+
+
+
+
+
+
